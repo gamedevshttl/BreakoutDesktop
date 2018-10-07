@@ -1,0 +1,60 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(Breakout)
+
+find_package(OpenGL REQUIRED)
+
+include_directories(
+	external/glfw/include
+	external/glew-1.13.0/include
+	external/glm-0.9.8.5
+	external/assimp-3.3.1/include
+	external/rapidjson/include
+)
+
+set (GLEW_SOURCES external/glew-1.13.0/src/glew.c)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+add_library(GLEW_1130 STATIC ${GLEW_SOURCES})
+
+set(SOURCE_CODE 
+		src/main.cpp
+		src/game.h
+		src/game.cpp
+		src/resource_manager.h
+		src/resource_manager.cpp
+		src/shader.h
+		src/shader.cpp
+		src/texture.h
+		src/texture.cpp
+		src/sprite_renderer.h
+		src/sprite_renderer.cpp
+		src/game_object.h
+		src/game_object.cpp
+		src/game_level.h
+		src/game_level.cpp
+		src/ball_object.h
+		src/ball_object.cpp
+		src/particle_generator.h
+		src/particle_generator.cpp
+		src/shader/sprite.vs
+		src/shader/sprite.fs
+		src/shader/particle.vs
+		src/shader/particle.fs
+)
+
+add_executable(Breakout ${SOURCE_CODE})
+
+add_subdirectory(external/glfw)
+add_subdirectory(external/assimp-3.3.1)
+add_subdirectory(external/rapidjson)
+
+source_group(shader FILES
+		src/shader/sprite.vs
+		src/shader/sprite.fs
+		src/shader/particle.vs
+		src/shader/particle.fs
+)
+
+target_link_libraries(Breakout glfw assimp GLEW_1130 ${GLFW_LIBRARIES} ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
