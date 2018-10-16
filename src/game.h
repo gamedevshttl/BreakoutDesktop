@@ -13,6 +13,7 @@ class sprite_renderer;
 class game_object;
 class ball_object;
 class particle_generator;
+class post_processor;
 
 enum game_state {
 	game_active,
@@ -74,6 +75,8 @@ public:
 	std::shared_ptr<ball_object> m_ball;
 	std::shared_ptr<particle_generator> m_particle_generator;
 
+	std::shared_ptr<post_processor> m_post_processor;
+	GLfloat m_shake_time;
 };
 
 

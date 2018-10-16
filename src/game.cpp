@@ -5,6 +5,7 @@
 #include "game_object.h"
 #include "ball_object.h"
 #include "particle_generator.h"
+#include "post_processor.h"
 
 #include <iostream>
 
@@ -75,6 +76,7 @@ game::game(GLuint width, GLuint height)
 	, m_last_x(0.0f)
 	, m_ball_radius(BALL_RADIUS)
 	, m_ball_velocity(INITIAL_BALL_VELOCITY)
+	, m_shake_time(0)
 {
 }
 
@@ -100,6 +102,7 @@ void game::init()
 
 	resource_manager::load_shader("../src/shader/sprite.vs", "../src/shader/sprite.fs", nullptr, "sprite");
 	resource_manager::load_shader("../src/shader/particle.vs", "../src/shader/particle.fs", nullptr, "particle");
+	resource_manager::load_shader("../src/shader/post_processor.vs", "../src/shader/post_processor.fs", nullptr, "postprocessing");
 
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(m_width), static_cast<GLfloat>(m_height), 0.0f, -1.0f, 1.0f);
 
@@ -119,6 +122,8 @@ void game::init()
 	m_particle_generator = std::make_shared<particle_generator>(resource_manager::get_shader("particle"),
 		resource_manager::get_texture("particle"),
 		500);
+
+	m_post_processor = std::make_shared<post_processor>(resource_manager::get_shader("postprocessing"), m_width, m_height);
 }
 
 void game::do_collision()
@@ -129,6 +134,10 @@ void game::do_collision()
 			if(std::get<0>(collision)){
 				if (!box.m_solid)
 					box.m_destroyed = true;
+				else {
+					m_shake_time = 0.1;
+					m_post_processor->m_shake = GL_TRUE;
+				}
 
 				Direction dir = std::get<1>(collision);
 				glm::vec2 diff_vector = std::get<2>(collision);
@@ -219,6 +228,12 @@ void game::update(GLfloat dt)
 	}
 
 	m_particle_generator->update(dt, *m_ball, 2, glm::vec2(m_ball->m_radius/2));
+
+	if (m_shake_time > 0.0f) {
+		m_shake_time -= dt;
+		if (m_shake_time < 0.0f)
+			m_post_processor->m_shake = GL_FALSE;
+	}
 }
 
 void game::mouse_callback(double xpos, double ypos)
@@ -229,13 +244,20 @@ void game::mouse_callback(double xpos, double ypos)
 
 void game::render()
 {
-	if (m_state == game_active)
-		m_sprite_renderer->draw_sprite(resource_manager::get_texture("background"), glm::vec2(0, 0), glm::vec2(m_width, m_height), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	m_post_processor->begin_render();
 
-	m_levels[m_current_level].draw(*m_sprite_renderer);
-	m_player->draw(*m_sprite_renderer);
-	m_particle_generator->draw();
-	m_ball->draw(*m_sprite_renderer);
+	{
+		if (m_state == game_active)
+			m_sprite_renderer->draw_sprite(resource_manager::get_texture("background"), glm::vec2(0, 0), glm::vec2(m_width, m_height), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+		m_levels[m_current_level].draw(*m_sprite_renderer);
+		m_player->draw(*m_sprite_renderer);
+		m_particle_generator->draw();
+		m_ball->draw(*m_sprite_renderer);
+	}
+
+	m_post_processor->end_render();
+	m_post_processor->render(glfwGetTime());
 }
 
 void game::reset_level()
