@@ -19,7 +19,7 @@ void main()
 		TexCoords = pos;
 	}
 	else if(confuse){
-		TexCoords = vec2(1.0 - texture.x, 1.0 - texture.y);
+		TexCoords = vec2(texture.x, 1.0 - texture.y);
 	}
 	else{
 		TexCoords = texture;

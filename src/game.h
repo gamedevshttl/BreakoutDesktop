@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "game_level.h"
+#include "reward.h"
 
 class sprite_renderer;
 class game_object;
@@ -50,9 +51,11 @@ public:
 	void render();
 	void reset_level();
 	void reset_player();
+	void spawn_rewards(const glm::vec2& position, GLuint index);
+	void update_reward(GLfloat dt);
+	void activate_reward(const reward& reward_item);
 
 	
-
 	game_state m_state;
 	GLboolean m_key[1024];
 	GLuint m_width, m_height;
@@ -77,6 +80,8 @@ public:
 
 	std::shared_ptr<post_processor> m_post_processor;
 	GLfloat m_shake_time;
+
+	std::vector<reward> m_rewards;
 };
 
 

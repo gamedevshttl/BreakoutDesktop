@@ -40,6 +40,8 @@ set(SOURCE_CODE
 		src/particle_generator.cpp
 		src/post_processor.h
 		src/post_processor.cpp
+		src/reward.h
+		src/reward.cpp
 		src/shader/sprite.vs
 		src/shader/sprite.fs
 		src/shader/particle.vs

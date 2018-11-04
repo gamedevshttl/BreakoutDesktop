@@ -45,6 +45,25 @@ void game_level::load(const GLchar* file, GLuint level_width, GLuint level_heigh
 
 	init(tile_data, level_width, level_height);
 
+	const rapidjson::Value& reward_array = document["reward"];
+	assert(reward_array.IsArray());
+
+	for (rapidjson::Value::ConstValueIterator it = reward_array.Begin(); it != reward_array.End(); ++it)
+	{		
+		for (rapidjson::Value::ConstMemberIterator obj_it = it->GetObject().MemberBegin();
+			obj_it != it->GetObject().MemberEnd();
+			++obj_it) {
+			
+			std::string reward_key = obj_it->name.GetString();
+
+			const rapidjson::Value& value = obj_it->value;
+			assert(value.IsArray());
+			for (rapidjson::Value::ConstValueIterator value_it = value.Begin(); value_it != value.End(); ++value_it) {
+				GLuint index = value_it->GetInt();
+				m_reward[index] = reward_key;
+			}
+		}
+	}
 }
 
 void game_level::reset()
@@ -76,15 +95,17 @@ void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint 
 	GLfloat unit_width = level_width / static_cast<GLfloat>(width);
 	GLfloat unit_height = level_height / static_cast<GLfloat>(height);
 
+	GLuint index = 0;
 	for (GLuint y = 0; y < height; ++y) {
 		for (GLuint x = 0; x < width; ++x) {
 			glm::vec2 pos(unit_width * x, unit_height * y);
 			glm::vec2 size(unit_width, unit_height);
 
 			if (tile_data[y][x] == 1) {
-				game_object obj(pos, size, resource_manager::get_texture("block_solid"), glm::vec3(0.8f, 0.8f, 0.7f));
-				obj.m_solid = true;
-				m_briks.push_back(obj);
+				brick_object brick(pos, size, resource_manager::get_texture("block_solid"), glm::vec3(0.8f, 0.8f, 0.7f));
+				brick.m_solid = true;
+				brick.m_index = index;
+				m_briks.push_back(brick);
 			}
 			else if(tile_data[y][x] > 1){
 				glm::vec3 color(1.0f);
@@ -97,9 +118,20 @@ void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint 
 				else if (tile_data[y][x] == 5)
 					color = glm::vec3(1.0f, 0.5f, 0.0f);
 
-				m_briks.push_back(game_object(pos, size, resource_manager::get_texture("block"), color));
+				brick_object brick(pos, size, resource_manager::get_texture("block"), color);
+				brick.m_index = index;
+				m_briks.push_back(brick);
 			}
-
+			++index;
 		}
 	}
+}
+
+std::string game_level::get_reward(GLuint index)
+{
+	auto reward_it = m_reward.find(index);
+	if (reward_it != m_reward.end())
+		return reward_it->second;
+
+	return "";
 }

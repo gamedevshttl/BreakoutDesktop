@@ -8,6 +8,8 @@ class ball_object:public game_object
 public:
 	GLfloat m_radius;
 	GLboolean m_stuck;
+	GLboolean m_sticky;
+	GLboolean m_pass_through;
 
 	ball_object();
 	ball_object(glm::vec2 pos, GLfloat radius, glm::vec2 velocity, texture sprite);
