@@ -309,12 +309,6 @@ void game::reset_player()
 	m_ball->m_pass_through = GL_FALSE;
 }
 
-GLboolean should_spawn(GLuint chanse)
-{
-	GLuint random = rand() % 2;
-	return random == 0;
-}
-
 void game::spawn_rewards(const glm::vec2& position, GLuint index)
 {
 	std::string reward_type = m_levels[m_current_level].get_reward(index);

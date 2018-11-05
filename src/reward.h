@@ -1,3 +1,6 @@
+#ifndef REWARD_H
+#define REWARD_H
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
@@ -37,3 +40,5 @@ protected:
 	static std::unordered_map<std::string, GLfloat> m_duration;
 	static std::unordered_map<std::string, texture> m_texture;
 };
+
+#endif
