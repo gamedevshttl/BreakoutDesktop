@@ -28,6 +28,16 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	breakout.mouse_callback(xpos, ypos);
 }
 
+void mouse_key_callback(GLFWwindow* window, int key, int action, int mode)
+{
+	if (key >= 0 && key < 8) {		
+		if (action == GLFW_PRESS)
+			breakout.m_mouse_key[key] = GL_TRUE;
+		else if (action == GLFW_RELEASE)
+			breakout.m_mouse_key[key] = GL_FALSE;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	glfwInit();
@@ -44,6 +54,7 @@ int main(int argc, char *argv[])
 
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetMouseButtonCallback(window, mouse_key_callback);
 
 	// OpenGL configuration
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);

@@ -228,17 +228,9 @@ void game::progress_input(GLfloat dt)
 			m_ball->m_stuck = false;
 	}
 
-	//if (m_player->m_position.x >= 0.0f && m_player->m_position.x <= m_width - m_player->m_size.x) {
-	//	m_player->m_position.x += m_x_offset * (dt * 50.0f);
 
-	//	if (m_player->m_position.x > m_width - m_player->m_size.x)
-	//		m_player->m_position.x = m_width - m_player->m_size.x;
-
-	//	if (m_player->m_position.x < 0.0f)
-	//		m_player->m_position.x = 0.0f;
-
-	//	m_x_offset = 0.0f;
-	//}	
+	if (m_mouse_key[GLFW_MOUSE_BUTTON_LEFT])
+		m_ball->m_stuck = false;
 }
 
 void game::update(GLfloat dt)
@@ -260,12 +252,61 @@ void game::update(GLfloat dt)
 	}
 
 	update_reward(dt);
+
+	if ((m_player->m_position.x + m_player->m_size.x / 2) != m_mouse_x) {
+		if (m_prev_mouse_x != m_mouse_x) {
+			m_diff_pos = m_mouse_x - (m_player->m_position.x + m_player->m_size.x / 2);
+			m_prev_mouse_x = m_mouse_x;
+			m_move_time = 0.05f;
+		}
+
+		if (m_move_time > 0) {
+			if (m_diff_pos > 0) {
+				if ((m_player->m_position.x + m_player->m_size.x / 2) < m_mouse_x) {
+					GLfloat delta = (m_diff_pos * dt) / m_move_time;
+					m_player->m_position.x += delta;
+
+					if (m_ball->m_stuck)
+						m_ball->m_position.x += delta;
+
+					m_diff_pos -= delta;
+					m_move_time -= dt;
+				}
+			}
+			else {
+				if ((m_player->m_position.x + m_player->m_size.x / 2) > m_mouse_x) {
+					GLfloat delta = (m_diff_pos * dt) / m_move_time;
+					m_player->m_position.x += delta;
+
+					if (m_ball->m_stuck)
+						m_ball->m_position.x += delta;
+
+
+					m_diff_pos -= delta;
+					m_move_time -= dt;
+				}
+			}
+
+			if (m_player->m_position.x <= 0) {
+				m_player->m_position.x = 1;
+				m_move_time = 0;
+			}
+
+			if (m_player->m_position.x >= m_width - m_player->m_size.x) {
+				m_player->m_position.x = m_width - m_player->m_size.x - 1;
+				m_move_time = 0;
+			}			
+		}
+
+	}
+
 }
+
 
 void game::mouse_callback(double xpos, double ypos)
 {
-	m_x_offset = xpos - m_last_x;
-	m_last_x = xpos;
+	m_mouse_x = xpos;
+	m_mouse_y = ypos;
 }
 
 void game::render()

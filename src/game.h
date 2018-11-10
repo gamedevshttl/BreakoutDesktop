@@ -59,6 +59,7 @@ public:
 	game_state m_state;
 	GLboolean m_key[1024];
 	GLuint m_width, m_height;
+	GLboolean m_mouse_key[8];
 
 	std::shared_ptr<sprite_renderer> m_sprite_renderer;
 
@@ -82,6 +83,10 @@ public:
 	GLfloat m_shake_time;
 
 	std::vector<reward> m_rewards;
+
+	GLfloat m_mouse_x, m_prev_mouse_x, m_mouse_y;
+	GLfloat m_diff_pos;
+	GLfloat m_move_time;
 };
 
 
