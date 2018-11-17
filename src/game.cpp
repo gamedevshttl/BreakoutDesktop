@@ -290,11 +290,20 @@ void game::update(GLfloat dt)
 			}
 
 			if (m_player->m_position.x <= 0) {
+
+				if (m_ball->m_stuck)
+					m_ball->m_position.x += (1 + std::abs(m_player->m_position.x));
+
+
 				m_player->m_position.x = 1;
 				m_move_time = 0;
 			}
 
 			if (m_player->m_position.x >= m_width - m_player->m_size.x) {
+
+				if (m_ball->m_stuck)
+					m_ball->m_position.x -= (m_player->m_position.x - (m_width - m_player->m_size.x - 1));
+
 				m_player->m_position.x = m_width - m_player->m_size.x - 1;
 				m_move_time = 0;
 			}			
