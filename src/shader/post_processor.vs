@@ -15,7 +15,7 @@ void main()
 	
 	if(chaos){
 		float strenght = 0.3;
-		vec2 pos = vec2(texture.x + sin(time) * strenght, texture.y + cos(time) * strenght);
+		vec2 pos = vec2(texture.x, texture.y + 0.5 + cos(time) * strenght);
 		TexCoords = pos;
 	}
 	else if(confuse){

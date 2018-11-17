@@ -7,7 +7,7 @@ post_processor::post_processor(shader shader, GLuint width, GLuint height)
 	, m_texture()
 	, m_width(width)
 	, m_height(height)
-	, m_confise(GL_FALSE)
+	, m_confuse(GL_FALSE)
 	, m_chaos(GL_FALSE)
 	, m_shake(GL_FALSE)
 {
@@ -83,7 +83,7 @@ void post_processor::render(GLfloat time)
 {
 	m_post_processor_shader.use();
 	m_post_processor_shader.set_float("time", time);
-	m_post_processor_shader.set_int("confuse", m_confise);
+	m_post_processor_shader.set_int("confuse", m_confuse);
 	m_post_processor_shader.set_int("chaos", m_chaos);
 	m_post_processor_shader.set_int("shake", m_shake);
 

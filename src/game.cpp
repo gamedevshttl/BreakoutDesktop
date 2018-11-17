@@ -88,6 +88,8 @@ game::~game()
 void game::init()
 {
 	m_ball_velocity = INITIAL_BALL_VELOCITY;
+	m_game_screen_top = m_height - m_height * 0.9;
+	m_game_screen_low = m_height - m_height * 0.8;	
 
 	resource_manager::load_texture("../resources/textures/background.jpg", GL_TRUE, "background");
 	resource_manager::load_texture("../resources/textures/awesomeface.png", GL_TRUE, "fase");
@@ -99,7 +101,7 @@ void game::init()
 	reward_manager::init();
 
 	game_level one;
-	one.load("../resources/data/level_one.json", m_width, m_height * 0.3);
+	one.load("../resources/data/level_one.json", m_width, m_height * 0.3, m_game_screen_top);
 	m_levels.emplace_back(one);
 	m_current_level = 0;
 
@@ -116,9 +118,9 @@ void game::init()
 
 	m_sprite_renderer = std::make_shared<sprite_renderer>(resource_manager::get_shader("sprite"));
 
-	glm::vec2 player_pos = glm::vec2(m_width/2 - m_player_size.x/2, m_height - m_player_size.y);
+	glm::vec2 player_pos = glm::vec2(m_width/2 - m_player_size.x/2, m_height - m_player_size.y - m_game_screen_low);
 	m_player = std::make_shared<game_object>(player_pos, m_player_size, resource_manager::get_texture("paddle"));
-
+	
 	glm::vec2 ball_pos = player_pos + glm::vec2(m_player_size.x / 2 - m_ball_radius / 2, -m_ball_radius * 2);
 	m_ball = std::make_shared<ball_object>(ball_pos, m_ball_radius, m_ball_velocity, resource_manager::get_texture("fase"));
 
@@ -341,12 +343,12 @@ void game::reset_level()
 void game::reset_player()
 {
 	m_player->m_size = m_player_size;
-	m_player->m_position = glm::vec2(m_width/2 - m_player->m_size.x/2, m_height - m_player->m_size.y);
+	m_player->m_position = glm::vec2(m_width/2 - m_player->m_size.x/2, m_height - m_player->m_size.y - m_game_screen_low);
 	m_ball->reset(m_player->m_position + glm::vec2(m_player->m_size.x/2 - m_ball->m_radius/2, -m_ball_radius * 2), INITIAL_BALL_VELOCITY);
 	m_ball->m_color = glm::vec3(1.0f);
 	m_player->m_color = glm::vec3(1.0f);
 	m_post_processor->m_chaos = GL_FALSE;
-	m_post_processor->m_confise = GL_FALSE;
+	m_post_processor->m_confuse = GL_FALSE;
 	m_ball->m_pass_through = GL_FALSE;
 }
 
@@ -398,7 +400,7 @@ void game::update_reward(GLfloat dt)
 				}
 				else if(reward_item.m_type == "confuse") {
 					if (!is_other_reward_active(m_rewards, "confuse")) {
-						m_post_processor->m_confise = GL_FALSE;
+						m_post_processor->m_confuse = GL_FALSE;
 					}
 				}
 				else if(reward_item.m_type == "chaos") {
@@ -433,11 +435,11 @@ void game::activate_reward(const reward& reward_item)
 		m_player->m_size.x += 50;
 	}
 	else if (reward_item.m_type == "confuse") {
-		if (!m_post_processor->m_chaos)
-			m_post_processor->m_confise = GL_TRUE;
+		if (!m_post_processor->m_chaos) 
+			m_post_processor->m_confuse = GL_TRUE;
 	}
 	else if (reward_item.m_type == "chaos") {
-		if (!m_post_processor->m_confise)
+		if (!m_post_processor->m_confuse)
 			m_post_processor->m_chaos = GL_TRUE;
 	}
 }

@@ -11,7 +11,7 @@
 game_level::game_level()
 {}
 
-void game_level::load(const GLchar* file, GLuint level_width, GLuint level_height)
+void game_level::load(const GLchar* file, GLuint level_width, GLuint level_height, GLuint screen_height)
 {
 	std::string level_source;
 	std::ifstream level_source_file(file);
@@ -43,7 +43,7 @@ void game_level::load(const GLchar* file, GLuint level_width, GLuint level_heigh
 		}		
 	}
 
-	init(tile_data, level_width, level_height);
+	init(tile_data, level_width, level_height, screen_height);
 
 	const rapidjson::Value& reward_array = document["reward"];
 	assert(reward_array.IsArray());
@@ -84,7 +84,7 @@ GLboolean game_level::is_completed()
 	return false;
 }
 
-void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint level_width, GLuint level_height)
+void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint level_width, GLuint level_height, GLuint screen_height)
 {
 	if (tile_data.empty())
 		return;
@@ -98,7 +98,7 @@ void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint 
 	GLuint index = 0;
 	for (GLuint y = 0; y < height; ++y) {
 		for (GLuint x = 0; x < width; ++x) {
-			glm::vec2 pos(unit_width * x, unit_height * y);
+			glm::vec2 pos(unit_width * x, unit_height * y + screen_height);
 			glm::vec2 size(unit_width, unit_height);
 
 			if (tile_data[y][x] == 1) {

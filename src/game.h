@@ -66,6 +66,9 @@ public:
 	std::vector<game_level> m_levels;
 	GLuint m_current_level;
 
+	GLuint m_game_screen_top;
+	GLuint m_game_screen_low;	
+
 	std::shared_ptr<game_object> m_player;
 	glm::vec2 m_player_size;
 

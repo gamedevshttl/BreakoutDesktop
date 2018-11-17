@@ -14,7 +14,7 @@ public:
 	texture m_texture;
 	GLuint m_width, m_height;
 
-	GLboolean m_confise, m_chaos, m_shake;
+	GLboolean m_confuse, m_chaos, m_shake;
 
 	post_processor(shader shader, GLuint width, GLuint height);
 

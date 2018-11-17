@@ -24,8 +24,8 @@ class game_level
 {
 public:
 	game_level();
-	void load(const GLchar* file, GLuint level_width, GLuint level_height);
-	void draw(sprite_renderer& renderer);
+	void load(const GLchar* file, GLuint level_width, GLuint level_height, GLuint screen_height);
+	void draw(sprite_renderer& renderer);	
 	void reset();
 	GLboolean is_completed();
 	std::string get_reward(GLuint index);
@@ -35,7 +35,7 @@ public:
 	std::unordered_map<GLuint, std::string> m_reward;
 
 private:
-	void init(const std::vector<std::vector<GLuint>>& tile_data, GLuint level_width, GLuint level_height);
+	void init(const std::vector<std::vector<GLuint>>& tile_data, GLuint level_width, GLuint level_height, GLuint screen_height);
 };
 
 #endif
