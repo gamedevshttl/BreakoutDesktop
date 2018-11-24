@@ -35,8 +35,6 @@ typedef std::tuple<GLboolean, Direction, glm::vec2> Collision;
 const GLfloat PLAYER_VELOCITY(500.0f);
 // Initial velocity of the Ball
 const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
-// Radius of the ball object
-const GLfloat BALL_RADIUS = 12.5f;
 
 class game {
 public:

@@ -72,10 +72,10 @@ game::game(GLuint width, GLuint height)
 	, m_key()
 	, m_state(game_active)
 	, m_player_size(width / 8, height / 30)
+	, m_ball_radius(width / 60.0f)
 	, m_player_velocity(PLAYER_VELOCITY)
 	, m_x_offset(0.0f)
-	, m_last_x(0.0f)
-	, m_ball_radius(BALL_RADIUS)
+	, m_last_x(0.0f)	
 	, m_ball_velocity(INITIAL_BALL_VELOCITY)
 	, m_shake_time(0)
 {
@@ -97,7 +97,13 @@ void game::init()
 	resource_manager::load_texture("../resources/textures/block_solid.png", GL_TRUE, "block_solid");
 	resource_manager::load_texture("../resources/textures/paddle.png", GL_TRUE, "paddle");
 	resource_manager::load_texture("../resources/textures/particle.png", GL_TRUE, "particle");
-
+	resource_manager::load_texture("../resources/textures/ball_icon.png", GL_TRUE, "ball_icon");
+	resource_manager::load_texture("../resources/textures/white_break.png", GL_TRUE, "white_break");
+	resource_manager::load_texture("../resources/textures/armor_break_1.png", GL_TRUE, "armor_break");
+	resource_manager::load_texture("../resources/textures/stone_break_2.png", GL_TRUE, "stone_break");
+	
+	
+	
 	reward_manager::init();
 
 	game_level one;
@@ -122,11 +128,12 @@ void game::init()
 	m_player = std::make_shared<game_object>(player_pos, m_player_size, resource_manager::get_texture("paddle"));
 	
 	glm::vec2 ball_pos = player_pos + glm::vec2(m_player_size.x / 2 - m_ball_radius / 2, -m_ball_radius * 2);
-	m_ball = std::make_shared<ball_object>(ball_pos, m_ball_radius, m_ball_velocity, resource_manager::get_texture("fase"));
+	m_ball = std::make_shared<ball_object>(ball_pos, m_ball_radius, m_ball_velocity, resource_manager::get_texture("ball_icon"));
 
 	m_particle_generator = std::make_shared<particle_generator>(resource_manager::get_shader("particle"),
 		resource_manager::get_texture("particle"),
-		500);
+		500,
+		m_width/70.0f);
 
 	m_post_processor = std::make_shared<post_processor>(resource_manager::get_shader("postprocessing"), m_width, m_height);
 }

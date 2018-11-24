@@ -93,7 +93,12 @@ void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint 
 	GLuint width = tile_data[0].size();
 
 	GLfloat unit_width = level_width / static_cast<GLfloat>(width);
-	GLfloat unit_height = level_height / static_cast<GLfloat>(height);
+	GLfloat unit_height = level_height / static_cast<GLfloat>(height);	
+
+	texture block = resource_manager::get_texture("white_break");
+	GLfloat scale = unit_width / block.m_width;
+	unit_height = block.m_height * scale;
+
 
 	GLuint index = 0;
 	for (GLuint y = 0; y < height; ++y) {
@@ -102,7 +107,7 @@ void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint 
 			glm::vec2 size(unit_width, unit_height);
 
 			if (tile_data[y][x] == 1) {
-				brick_object brick(pos, size, resource_manager::get_texture("block_solid"), glm::vec3(0.8f, 0.8f, 0.7f));
+				brick_object brick(pos, size, resource_manager::get_texture("stone_break"), glm::vec3(0.8f, 0.8f, 0.7f));
 				brick.m_solid = true;
 				brick.m_index = index;
 				m_briks.push_back(brick);
@@ -118,7 +123,7 @@ void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint 
 				else if (tile_data[y][x] == 5)
 					color = glm::vec3(1.0f, 0.5f, 0.0f);
 
-				brick_object brick(pos, size, resource_manager::get_texture("block"), color);
+				brick_object brick(pos, size, resource_manager::get_texture("white_break"), color);
 				brick.m_index = index;
 				m_briks.push_back(brick);
 			}

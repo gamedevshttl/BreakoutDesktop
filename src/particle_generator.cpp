@@ -1,11 +1,12 @@
 #include "particle_generator.h"
 
 
-particle_generator::particle_generator(shader _shader, texture _texture, GLuint amount)
+particle_generator::particle_generator(shader _shader, texture _texture, GLuint amount, GLfloat scale)
 	: m_shader(_shader)
 	, m_texture(_texture)
 	, m_amount(amount)
 	, m_last_used_particle(0)
+	, m_scale(scale)
 {
 	init();
 }
@@ -36,6 +37,7 @@ void particle_generator::draw()
 		if (item.m_life > 0.0f) {
 			m_shader.set_vector_2f("offset", item.m_position);
 			m_shader.set_vector_4f("color", item.m_color);
+			m_shader.set_float("scale", m_scale);
 			glActiveTexture(GL_TEXTURE0);
 			m_texture.bind();
 			glBindVertexArray(m_VAO);
