@@ -10,6 +10,7 @@ include_directories(
 	external/glm-0.9.8.5
 	external/assimp-3.3.1/include
 	external/rapidjson/include
+	external/freetype-2.9/include
 )
 
 set (GLEW_SOURCES external/glew-1.13.0/src/glew.c)
@@ -42,12 +43,17 @@ set(SOURCE_CODE
 		src/post_processor.cpp
 		src/reward.h
 		src/reward.cpp
+		src/text_renderer.h
+		src/text_renderer.cpp
 		src/shader/sprite.vs
 		src/shader/sprite.fs
 		src/shader/particle.vs
 		src/shader/particle.fs
 		src/shader/post_processor.vs
 		src/shader/post_processor.fs
+		src/shader/text.vs
+		src/shader/text.fs
+
 )
 
 add_executable(Breakout ${SOURCE_CODE})
@@ -55,6 +61,7 @@ add_executable(Breakout ${SOURCE_CODE})
 add_subdirectory(external/glfw)
 add_subdirectory(external/assimp-3.3.1)
 add_subdirectory(external/rapidjson)
+add_subdirectory(external/freetype-2.9)
 
 source_group(shader FILES
 		src/shader/sprite.vs
@@ -63,6 +70,10 @@ source_group(shader FILES
 		src/shader/particle.fs
 		src/shader/post_processor.vs
 		src/shader/post_processor.fs
+		src/shader/text.vs
+		src/shader/text.fs
 )
 
-target_link_libraries(Breakout glfw assimp GLEW_1130 ${GLFW_LIBRARIES} ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
+target_compile_definitions(freetype PRIVATE FT2_BUILD_LIBRARY)
+
+target_link_libraries(Breakout glfw assimp GLEW_1130 freetype ${GLFW_LIBRARIES} ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS} )

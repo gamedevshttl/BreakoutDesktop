@@ -15,6 +15,7 @@ class game_object;
 class ball_object;
 class particle_generator;
 class post_processor;
+class text_renderer;
 
 enum game_state {
 	game_active,
@@ -88,6 +89,8 @@ public:
 	GLfloat m_mouse_x, m_prev_mouse_x, m_mouse_y;
 	GLfloat m_diff_pos;
 	GLfloat m_move_time;
+
+	std::shared_ptr<text_renderer> m_text;
 };
 
 

@@ -6,8 +6,11 @@
 #include "ball_object.h"
 #include "particle_generator.h"
 #include "post_processor.h"
+#include "text_renderer.h"
 
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <algorithm>
 
 
@@ -136,6 +139,9 @@ void game::init()
 		m_width/70.0f);
 
 	m_post_processor = std::make_shared<post_processor>(resource_manager::get_shader("postprocessing"), m_width, m_height);
+
+	m_text = std::make_shared<text_renderer>(m_width, m_height);
+	m_text->load("../resources/font/OCRAEXT.TTF", 24);
 }
 
 void game::do_collision()
@@ -349,6 +355,8 @@ void game::render()
 
 	m_post_processor->end_render();
 	m_post_processor->render(glfwGetTime());
+	
+	m_text->render_text("Lives:3", 5.0f, 5.0f, 1.0f);
 }
 
 void game::reset_level()
