@@ -73,7 +73,7 @@ game::game(GLuint width, GLuint height)
 	: m_width(width)
 	, m_height(height)
 	, m_key()
-	, m_state(game_active)
+	, m_state(game_state::game_menu)
 	, m_player_size(width / 8, height / 30)
 	, m_ball_radius(width / 60.0f)
 	, m_player_velocity(PLAYER_VELOCITY)
@@ -104,13 +104,13 @@ void game::init()
 	resource_manager::load_texture("../resources/textures/white_break.png", GL_TRUE, "white_break");
 	resource_manager::load_texture("../resources/textures/armor_break_1.png", GL_TRUE, "armor_break");
 	resource_manager::load_texture("../resources/textures/stone_break_2.png", GL_TRUE, "stone_break");
-	
-	
-	
+		
 	reward_manager::init();
 
 	game_level one;
 	one.load("../resources/data/level_one.json", m_width, m_height * 0.3, m_game_screen_top);
+	m_levels.emplace_back(one);
+	one.load("../resources/data/level_two.json", m_width, m_height * 0.3, m_game_screen_top);
 	m_levels.emplace_back(one);
 	m_current_level = 0;
 
@@ -218,8 +218,26 @@ void game::do_collision()
 }
 
 void game::progress_input(GLfloat dt)
-{
-	if (m_state == game_active) {
+{	
+	if (m_state == game_state::game_menu) {
+		if (m_key[GLFW_KEY_ENTER] && !m_key_processed[GLFW_KEY_ENTER]) {
+			m_state = game_state::game_active;
+			m_key_processed[GLFW_KEY_ENTER] = GL_TRUE;
+		}
+
+		if (m_key[GLFW_KEY_W] && !m_key_processed[GLFW_KEY_W]) {
+			++m_current_level;
+			m_current_level = m_current_level%m_levels.size();
+			m_key_processed[GLFW_KEY_W] = GL_TRUE;
+		}
+
+		if (m_mouse_key[GLFW_MOUSE_BUTTON_LEFT])
+			m_state = game_state::game_active;
+
+		return;
+	}
+
+	if (m_state == game_state::game_active) {
 		GLfloat velocity = m_player_velocity * dt;
 
 		if (m_key[GLFW_KEY_A]) {
@@ -241,11 +259,19 @@ void game::progress_input(GLfloat dt)
 
 		if (m_key[GLFW_KEY_SPACE])
 			m_ball->m_stuck = false;
+
+		if (m_mouse_key[GLFW_MOUSE_BUTTON_LEFT])
+			m_ball->m_stuck = false;
+	}
+
+	if (m_state == game_state::game_win) {
+		if (m_key[GLFW_KEY_ENTER]) {
+			m_key_processed[GLFW_KEY_ENTER] = GL_TRUE;
+			m_state = game_state::game_menu;
+		}
 	}
 
 
-	if (m_mouse_key[GLFW_MOUSE_BUTTON_LEFT])
-		m_ball->m_stuck = false;
 }
 
 void game::update(GLfloat dt)
@@ -253,9 +279,14 @@ void game::update(GLfloat dt)
 	m_ball->move(dt, m_width);
 	do_collision();
 
-	if (m_ball->m_position.y >= m_height) {
-		reset_level();
+	if (m_ball->m_position.y >= m_height) {		
+		m_levels[m_current_level].lost_live();
 		reset_player();
+
+		if (m_levels[m_current_level].m_life == 0) {
+			m_state = game_state::game_menu;
+			m_levels[m_current_level].reset();
+		}
 	}
 
 	m_particle_generator->update(dt, *m_ball, 2, glm::vec2(m_ball->m_radius/2));
@@ -321,42 +352,87 @@ void game::update(GLfloat dt)
 				m_move_time = 0;
 			}			
 		}
+	}
 
+	if (m_state == game_state::game_active && m_levels[m_current_level].is_completed()) {
+		reset_player();
+		reset_level();
+		m_state = game_state::game_win;
 	}
 
 }
 
+void game::key_callback(int key, int scancode, int action, int mode)
+{
+	if (key >= 0 && key < 1024)
+	{
+		if (action == GLFW_PRESS)
+			m_key[key] = GL_TRUE;
+		else if (action == GLFW_RELEASE) {
+			m_key[key] = GL_FALSE;
+			m_key_processed[key] = GL_FALSE;
+		}
+	}
+}
 
 void game::mouse_callback(double xpos, double ypos)
 {
+	if (m_state == game_state::game_menu || m_state == game_state::game_win)
+		return;
+
 	m_mouse_x = xpos;
 	m_mouse_y = ypos;
 }
 
+void game::mouse_key_callback(int key, int action, int mode)
+{
+	if (key >= 0 && key < 8) {
+		if (action == GLFW_PRESS)
+			m_mouse_key[key] = GL_TRUE;
+		else if (action == GLFW_RELEASE)
+			m_mouse_key[key] = GL_FALSE;
+	}
+}
+
 void game::render()
 {
-	m_post_processor->begin_render();
-
 	{
-		if (m_state == game_active)
+		m_post_processor->begin_render();
+
+		{			
 			m_sprite_renderer->draw_sprite(resource_manager::get_texture("background"), glm::vec2(0, 0), glm::vec2(m_width, m_height), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
-		m_levels[m_current_level].draw(*m_sprite_renderer);
-		m_player->draw(*m_sprite_renderer);
-		
-		for (auto& reward_item : m_rewards) {
-			if (!reward_item.m_destroyed)
-				reward_item.draw(*m_sprite_renderer);
+			m_levels[m_current_level].draw(*m_sprite_renderer);
+			m_player->draw(*m_sprite_renderer);
+
+			for (auto& reward_item : m_rewards) {
+				if (!reward_item.m_destroyed)
+					reward_item.draw(*m_sprite_renderer);
+			}
+
+			m_particle_generator->draw();
+			m_ball->draw(*m_sprite_renderer);
 		}
 
-		m_particle_generator->draw();
-		m_ball->draw(*m_sprite_renderer);
+		m_post_processor->end_render();
+		m_post_processor->render(glfwGetTime());
+
+
+		std::stringstream ss; ss << m_levels[m_current_level].m_life;
+		m_text->render_text("Lives:" + ss.str(), 5.0f, 5.0f, 1.0f);
 	}
 
-	m_post_processor->end_render();
-	m_post_processor->render(glfwGetTime());
-	
-	m_text->render_text("Lives:3", 5.0f, 5.0f, 1.0f);
+	if (m_state == game_state::game_menu)
+	{
+		m_text->render_text("Press ENTER to start", 250.0f, m_height/ 2, 1.0f);
+		m_text->render_text("Press W or S to select level", 245.0f, m_height / 2 + 20.0f, 0.75f);
+	}
+
+	if (m_state == game_state::game_win)
+	{
+		m_text->render_text("You WON!!!", 250.0f, m_height / 2, 1.0f);
+		m_text->render_text("Press ENTER to retry or ESC to quit", 245.0f, m_height / 2 + 20.0f, 0.75f);
+	}
 }
 
 void game::reset_level()

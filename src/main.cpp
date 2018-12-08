@@ -12,15 +12,10 @@ game breakout(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-	if (key >= 0 && key < 1024)
-	{
-		if (action == GLFW_PRESS)
-			breakout.m_key[key] = GL_TRUE;
-		else if (action == GLFW_RELEASE)
-			breakout.m_key[key] = GL_FALSE;
-	}
+
+	breakout.key_callback(key, scancode, action, mode);
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -30,12 +25,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouse_key_callback(GLFWwindow* window, int key, int action, int mode)
 {
-	if (key >= 0 && key < 8) {		
-		if (action == GLFW_PRESS)
-			breakout.m_mouse_key[key] = GL_TRUE;
-		else if (action == GLFW_RELEASE)
-			breakout.m_mouse_key[key] = GL_FALSE;
-	}
+	breakout.mouse_key_callback(key, action, mode);
 }
 
 int main(int argc, char *argv[])
@@ -69,8 +59,6 @@ int main(int argc, char *argv[])
 
 	GLfloat delta_time = 0.0f;
 	GLfloat last_frame = 0.0f;
-
-	breakout.m_state = game_active;
 
 	while (!glfwWindowShouldClose(window))
 	{

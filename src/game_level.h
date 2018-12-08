@@ -27,12 +27,14 @@ public:
 	void load(const GLchar* file, GLuint level_width, GLuint level_height, GLuint screen_height);
 	void draw(sprite_renderer& renderer);	
 	void reset();
+	void lost_live();
 	GLboolean is_completed();
 	std::string get_reward(GLuint index);
 	
 	std::vector<brick_object> m_briks;
 
 	std::unordered_map<GLuint, std::string> m_reward;
+	GLuint m_life;
 
 private:
 	void init(const std::vector<std::vector<GLuint>>& tile_data, GLuint level_width, GLuint level_height, GLuint screen_height);

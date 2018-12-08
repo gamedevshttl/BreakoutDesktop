@@ -17,7 +17,7 @@ class particle_generator;
 class post_processor;
 class text_renderer;
 
-enum game_state {
+enum class game_state {
 	game_active,
 	game_menu,
 	game_win
@@ -46,7 +46,9 @@ public:
 	void do_collision();
 	void progress_input(GLfloat dt);
 	void update(GLfloat dt);
+	void key_callback(int key, int scancode, int action, int mode);
 	void mouse_callback(double xpos, double ypos);
+	void mouse_key_callback(int key, int action, int mode);
 	void render();
 	void reset_level();
 	void reset_player();
@@ -57,6 +59,7 @@ public:
 	
 	game_state m_state;
 	GLboolean m_key[1024];
+	GLboolean m_key_processed[1024];
 	GLuint m_width, m_height;
 	GLboolean m_mouse_key[8];
 

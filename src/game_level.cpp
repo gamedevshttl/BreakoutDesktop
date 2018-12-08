@@ -64,10 +64,19 @@ void game_level::load(const GLchar* file, GLuint level_width, GLuint level_heigh
 			}
 		}
 	}
+
+	const rapidjson::Value& object_life = document["life"];
+	m_life = object_life.GetInt();
+}
+
+void game_level::lost_live()
+{
+	--m_life;
 }
 
 void game_level::reset()
 {
+	m_life = 3;
 	for (auto& brick : m_briks)
 		brick.m_destroyed = false;
 }
@@ -81,7 +90,11 @@ void game_level::draw(sprite_renderer& renderer)
 
 GLboolean game_level::is_completed()
 {
-	return false;
+	for (auto& brick : m_briks)
+		if (!brick.m_solid && !brick.m_destroyed)
+			return false;
+
+	return true;
 }
 
 void game_level::init(const std::vector<std::vector<GLuint>>& tile_data, GLuint level_width, GLuint level_height, GLuint screen_height)
