@@ -6,7 +6,8 @@
 #include "ball_object.h"
 #include "particle_generator.h"
 #include "post_processor.h"
-#include "text_renderer.h"
+#include "ui/button.h"
+#include "ui/label.h"
 
 #include <iostream>
 #include <sstream>
@@ -81,6 +82,7 @@ game::game(GLuint width, GLuint height)
 	, m_last_x(0.0f)	
 	, m_ball_velocity(INITIAL_BALL_VELOCITY)
 	, m_shake_time(0)
+	, m_pause(false)
 {
 }
 
@@ -104,7 +106,9 @@ void game::init()
 	resource_manager::load_texture("../resources/textures/white_break.png", GL_TRUE, "white_break");
 	resource_manager::load_texture("../resources/textures/armor_break_1.png", GL_TRUE, "armor_break");
 	resource_manager::load_texture("../resources/textures/stone_break_2.png", GL_TRUE, "stone_break");
-		
+	resource_manager::load_texture("../resources/textures/btn_select_on.png", GL_TRUE, "btn_select_on");
+	resource_manager::load_texture("../resources/textures/btn_select_off.png", GL_TRUE, "btn_select_off");
+			
 	reward_manager::init();
 
 	game_level one;
@@ -140,8 +144,188 @@ void game::init()
 
 	m_post_processor = std::make_shared<post_processor>(resource_manager::get_shader("postprocessing"), m_width, m_height);
 
-	m_text = std::make_shared<text_renderer>(m_width, m_height);
-	m_text->load("../resources/font/OCRAEXT.TTF", 24);
+	m_game_bg_widget = std::make_shared<widget>(nullptr, 
+												"game_bg_widget",
+												glm::vec2(0.0f, 0.0f),
+												glm::vec2(m_width, m_height),
+												resource_manager::get_texture("background"));
+
+	texture empty_texure;
+
+	m_live_label = m_game_bg_widget->add<label>(
+		"live_label",
+		glm::vec2(5, 5),
+		m_width,
+		m_height,
+		empty_texure);
+
+	if (m_live_label) {
+		m_live_label->load("../resources/font/OCRAEXT.TTF", 24);
+		m_live_label->set_caption("text");
+	}
+	
+	glm::vec2 button_pos = glm::vec2(m_width / 10, m_height / 10);
+
+	m_menu_widget = std::make_shared<widget>(nullptr,
+		"menu_widget",
+		glm::vec2(0.0f, 0.0f),
+		glm::vec2(m_width, m_height),
+		resource_manager::get_texture("background"));
+
+	system::set_active_widget(m_menu_widget);
+
+	int less_side = m_width > m_height ? m_height : m_width;
+	int button_side = less_side / 11;
+	
+	int step_x = m_width/11;
+	int pos_x = step_x;
+
+	int step_y = m_height / 11;
+	int pos_y = step_y;		
+
+	for (int i = 0; i < 5; ++i) {
+		pos_x = step_x;
+		for (int j = 0; j < 5; ++j) {
+			auto level_button = m_menu_widget->add<button>(	"level_button",
+															glm::vec2(pos_x, pos_y),
+															glm::vec2(button_side, button_side),
+															resource_manager::get_texture("btn_select_off"),
+															resource_manager::get_texture("btn_select_on"),
+															resource_manager::get_texture("btn_select_off"),
+															glm::vec3(1.0f),
+															[this, level_idx = i * 5 + j]() {
+																std::cout << "press " << level_idx << std::endl;
+																start_level(level_idx);
+															}
+															);
+			pos_x += step_x * 2;
+
+			if (level_button) {
+				auto button_label = level_button->add<label>(
+					"button_label",
+					glm::vec2(1, 1),
+					m_width,
+					m_height,
+					empty_texure);
+
+				if (button_label) {
+					if (button_label) {
+						button_label->load("../resources/font/OCRAEXT.TTF", 34);
+						button_label->set_caption(std::to_string(i * 5 + j));
+					}
+				}
+			}
+
+		}
+		pos_y += step_y * 2;
+	}	
+
+	int width_dlg = m_width / 2;
+	int height_dlg = m_height / 2;
+
+
+	m_dialog = std::make_shared<widget>(nullptr, 
+		"dialog",
+		glm::vec2(m_width / 2 - width_dlg / 2, m_height / 2 - height_dlg / 2),
+		glm::vec2(width_dlg, height_dlg),
+		resource_manager::get_texture("background"));
+
+	int width_button = width_dlg / 5;
+	int heigth_button = height_dlg / 8;
+
+	int x = width_dlg / 4 - width_button/2;
+	int y = height_dlg - (height_dlg / 7 + heigth_button / 2 );
+
+	{
+		auto start_level_btn = m_dialog->add<button>(	"start_level_btn",
+														glm::vec2(x, y),
+														glm::vec2(width_button, heigth_button),
+														resource_manager::get_texture("btn_select_off"),
+														resource_manager::get_texture("btn_select_on"),
+														resource_manager::get_texture("btn_select_off"),
+														glm::vec3(1.0f),
+														[this]() {
+														start_level(m_current_level);
+													}
+													);
+
+		if (start_level_btn) {			
+			auto button_label = start_level_btn->add<label>(
+					"button_label",
+					glm::vec2(1, 1),
+					m_width,
+					m_height,
+					empty_texure);
+
+			if (button_label) {
+				button_label->load("../resources/font/OCRAEXT.TTF", 24);
+				button_label->set_caption("again");
+			}
+		}
+	}
+	{
+		auto main_menu_btn = m_dialog->add<button>(		"main_menu_btn",
+														glm::vec2(width_dlg / 4 * 3 - width_button / 2, y),
+														glm::vec2(width_button, heigth_button),
+														resource_manager::get_texture("btn_select_off"),
+														resource_manager::get_texture("btn_select_on"),
+														resource_manager::get_texture("btn_select_off"),
+														glm::vec3(1.0f),
+														[this]() {
+														m_dialog->set_visible(false);
+														m_menu_widget->set_visible(true);
+														system::set_active_widget(m_menu_widget);
+													}
+													);
+
+		if (main_menu_btn) {
+			auto button_label = main_menu_btn->add<label>(
+				"button_label",
+				glm::vec2(1, 1),
+				m_width,
+				m_height,
+				empty_texure);
+
+			if (button_label) {
+				button_label->load("../resources/font/OCRAEXT.TTF", 24);
+				button_label->set_caption("menu");
+			}
+
+		}
+
+	}
+
+	auto dlg_label =  m_dialog->add<label>(
+		"dlg_label",
+		glm::vec2(5, 5),
+		m_width, 
+		m_height,
+		empty_texure);
+
+	if (dlg_label) {
+		dlg_label->set_caption("text");
+		dlg_label->load("../resources/font/OCRAEXT.TTF", 54);
+	}
+
+	m_dialog->set_visible(false);
+}
+
+void game::start_level(int level_idx)
+{
+	m_current_level = level_idx;
+	m_pause = false;
+	if (m_current_level >= m_levels.size())
+		m_current_level = m_levels.size() - 1;
+
+	m_state = game_state::game_active;
+
+	reset_player();
+	m_levels[m_current_level].reset();
+
+	m_menu_widget->set_visible(false);
+	m_dialog->set_visible(false);
+
+	system::reset_active_widget();
 }
 
 void game::do_collision()
@@ -219,24 +403,6 @@ void game::do_collision()
 
 void game::progress_input(GLfloat dt)
 {	
-	if (m_state == game_state::game_menu) {
-		if (m_key[GLFW_KEY_ENTER] && !m_key_processed[GLFW_KEY_ENTER]) {
-			m_state = game_state::game_active;
-			m_key_processed[GLFW_KEY_ENTER] = GL_TRUE;
-		}
-
-		if (m_key[GLFW_KEY_W] && !m_key_processed[GLFW_KEY_W]) {
-			++m_current_level;
-			m_current_level = m_current_level%m_levels.size();
-			m_key_processed[GLFW_KEY_W] = GL_TRUE;
-		}
-
-		if (m_mouse_key[GLFW_MOUSE_BUTTON_LEFT])
-			m_state = game_state::game_active;
-
-		return;
-	}
-
 	if (m_state == game_state::game_active) {
 		GLfloat velocity = m_player_velocity * dt;
 
@@ -263,19 +429,13 @@ void game::progress_input(GLfloat dt)
 		if (m_mouse_key[GLFW_MOUSE_BUTTON_LEFT])
 			m_ball->m_stuck = false;
 	}
-
-	if (m_state == game_state::game_win) {
-		if (m_key[GLFW_KEY_ENTER]) {
-			m_key_processed[GLFW_KEY_ENTER] = GL_TRUE;
-			m_state = game_state::game_menu;
-		}
-	}
-
-
 }
 
 void game::update(GLfloat dt)
 {
+	if (m_pause)
+		return;
+
 	m_ball->move(dt, m_width);
 	do_collision();
 
@@ -284,8 +444,16 @@ void game::update(GLfloat dt)
 		reset_player();
 
 		if (m_levels[m_current_level].m_life == 0) {
-			m_state = game_state::game_menu;
-			m_levels[m_current_level].reset();
+			m_state = game_state::game_win;
+
+			auto dlg_label = m_dialog->find("dlg_label");
+			if (dlg_label) {
+				dlg_label->set_caption("you lose");
+			}
+
+			m_dialog->set_visible(true);
+			system::set_active_widget(m_dialog);
+			m_pause = true;
 		}
 	}
 
@@ -355,11 +523,16 @@ void game::update(GLfloat dt)
 	}
 
 	if (m_state == game_state::game_active && m_levels[m_current_level].is_completed()) {
-		reset_player();
-		reset_level();
-		m_state = game_state::game_win;
-	}
+		auto dlg_label = m_dialog->find("dlg_label");
+		if (dlg_label) {
+			dlg_label->set_caption("you win");
+		}
 
+		m_state = game_state::game_win;
+		m_dialog->set_visible(true);
+		system::set_active_widget(m_dialog);
+		m_pause = true;
+	}
 }
 
 void game::key_callback(int key, int scancode, int action, int mode)
@@ -377,20 +550,34 @@ void game::key_callback(int key, int scancode, int action, int mode)
 
 void game::mouse_callback(double xpos, double ypos)
 {
-	if (m_state == game_state::game_menu || m_state == game_state::game_win)
-		return;
-
 	m_mouse_x = xpos;
 	m_mouse_y = ypos;
 }
 
 void game::mouse_key_callback(int key, int action, int mode)
 {
+	touch_action local_action;
+
 	if (key >= 0 && key < 8) {
-		if (action == GLFW_PRESS)
+		if (action == GLFW_PRESS) {
 			m_mouse_key[key] = GL_TRUE;
-		else if (action == GLFW_RELEASE)
+			local_action = touch_action::press;
+		}
+		else if (action == GLFW_RELEASE) {
 			m_mouse_key[key] = GL_FALSE;
+			local_action = touch_action::release;
+		}
+	}
+
+	if (system::get_capture())
+		system::get_capture()->touch(m_mouse_x, m_mouse_y, local_action);
+	else {
+		if(system::get_active_widget())
+			system::get_active_widget()->touch(m_mouse_x, m_mouse_y, local_action);
+		else {
+			m_menu_widget->touch(m_mouse_x, m_mouse_y, local_action);
+			m_dialog->touch(m_mouse_x, m_mouse_y, local_action);
+		}
 	}
 }
 
@@ -400,7 +587,7 @@ void game::render()
 		m_post_processor->begin_render();
 
 		{			
-			m_sprite_renderer->draw_sprite(resource_manager::get_texture("background"), glm::vec2(0, 0), glm::vec2(m_width, m_height), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			m_game_bg_widget->draw(*m_sprite_renderer);			
 
 			m_levels[m_current_level].draw(*m_sprite_renderer);
 			m_player->draw(*m_sprite_renderer);
@@ -419,20 +606,12 @@ void game::render()
 
 
 		std::stringstream ss; ss << m_levels[m_current_level].m_life;
-		m_text->render_text("Lives:" + ss.str(), 5.0f, 5.0f, 1.0f);
+		if (m_live_label)
+			m_live_label->set_caption("Lives:" + ss.str());
 	}
-
-	if (m_state == game_state::game_menu)
-	{
-		m_text->render_text("Press ENTER to start", 250.0f, m_height/ 2, 1.0f);
-		m_text->render_text("Press W or S to select level", 245.0f, m_height / 2 + 20.0f, 0.75f);
-	}
-
-	if (m_state == game_state::game_win)
-	{
-		m_text->render_text("You WON!!!", 250.0f, m_height / 2, 1.0f);
-		m_text->render_text("Press ENTER to retry or ESC to quit", 245.0f, m_height / 2 + 20.0f, 0.75f);
-	}
+	
+	m_menu_widget->draw(*m_sprite_renderer);
+	m_dialog->draw(*m_sprite_renderer);
 }
 
 void game::reset_level()

@@ -15,12 +15,14 @@ class game_object;
 class ball_object;
 class particle_generator;
 class post_processor;
-class text_renderer;
+class button;
+class widget;
+class label;
 
 enum class game_state {
 	game_active,
 	game_menu,
-	game_win
+	game_win	
 };
 
 enum Direction {
@@ -55,7 +57,7 @@ public:
 	void spawn_rewards(const glm::vec2& position, GLuint index);
 	void update_reward(GLfloat dt);
 	void activate_reward(const reward& reward_item);
-
+	void start_level(int level_idx);
 	
 	game_state m_state;
 	GLboolean m_key[1024];
@@ -93,7 +95,15 @@ public:
 	GLfloat m_diff_pos;
 	GLfloat m_move_time;
 
-	std::shared_ptr<text_renderer> m_text;
+	std::shared_ptr<widget> m_menu_widget;
+	std::shared_ptr<button> m_win_bg_btn;
+
+	std::shared_ptr<widget> m_dialog;
+	std::shared_ptr<widget> m_game_bg_widget;
+
+	std::shared_ptr<label> m_live_label;
+
+	bool m_pause;
 };
 
 

@@ -9,6 +9,8 @@
 
 #include <map>
 
+namespace text {
+
 struct character
 {
 	GLuint texture_id;
@@ -30,4 +32,5 @@ private:
 	GLuint m_VAO, m_VBO;
 };
 
+}
 #endif
